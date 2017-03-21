@@ -1,7 +1,7 @@
 $ ->
   #"https://api.unsplash.com/photos/?client_id=6bb5bb78cfde81736048d37f2d3399d5024a6a5be277ad88a4b1a366a5e4f77f"
   API_URL = "https://api.unsplash.com/photos/"
-  TRANSITION_DURATION = 2000
+  TRANSITION_DURATION = 3000
   IDLE_DURATION = 10000
 
   default_opts = {
@@ -10,21 +10,12 @@ $ ->
 
   window.$slideshow = $slideshow = $('[data-toggle="slideshow"]')
   $slide = $("<div class='slide' />").css('display', 'none')
-  $prevSlide = $currentSlide = null
-  slideShowInterval = null
-  idleTimeout = null
+  $prevSlide = $currentSlide = slideShowInterval = idleTimeout = null
   currentPage = 1
 
   pauseSlideShow = -> clearInterval(slideShowInterval)
-  startSlideShow = -> slideShowInterval = setInterval(resumeSlideshow, TRANSITION_DURATION)
 
-  fetchPhotos = (page = 1) ->
-    $.getJSON(API_URL, _.defaults(page: page, default_opts), (photos) ->
-      _.each(photos, (photo) ->
-        newSlide = $slide.clone().css('background-image', """url("#{photo.urls.small}")""")
-        $slideshow.append(newSlide)
-      )
-    )
+  startSlideShow = -> slideShowInterval = setInterval(resumeSlideshow, TRANSITION_DURATION)
 
   resumeSlideshow = ->
     nextSlide = $currentSlide.next()
@@ -36,6 +27,19 @@ $ ->
     else
       pauseSlideShow()
       fetchPhotos(currentPage += 1).then( -> startSlideShow())
+
+  ###
+    Fetch Photos
+    @param {Number} page
+    @return {Promise}
+  ###
+  fetchPhotos = (page = 1) ->
+    $.getJSON(API_URL, _.defaults(page: page, default_opts), (photos) ->
+      _.each(photos, (photo) ->
+        newSlide = $slide.clone().css('background-image', """url("#{photo.urls.small}")""")
+        $slideshow.append(newSlide)
+      )
+    )
 
   # Idle to resume
   idleSlideShow = ->
